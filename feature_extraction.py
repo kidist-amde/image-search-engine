@@ -15,11 +15,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-q","--query_path",required= True,type=str,help="path to query image")
     parser.add_argument("-g","--gallery_path",required= True,type=str,help="path to gallery directory")
+    parser.add_argument("-k",required= True,type=int,help="Number of similar images to return")
     args = parser.parse_args()
     def cosine_similarity(query_features,gal_path):
         gal_im = Image.open(gal_path)
-        gal_im = transform(gal_im).unsqueeze(0)
-        gal_features = model(gal_im)
+        try: 
+            gal_im = transform(gal_im).unsqueeze(0)
+        except:
+            return 0
+        gal_features = model(gal_im).detach()
         return cos(query_features,gal_features)
     def topk_similar_image(query_path,gal_dir,k):  
         query_im = Image.open(query_path)
@@ -27,13 +31,13 @@ def main():
         query_features = model(query_im)
         images_paths = []
         for folder in os.listdir(gal_dir):
-            i = 0
+            # i = 0
             for file in os.listdir(os.path.join(gal_dir,folder)):
                 if file.endswith(".jpg"):
                     images_paths.append(os.path.join(gal_dir,folder,file))
-                    i +=1
-                    if i >= 2:
-                        break
+                    # i +=1
+                    # if i >= 2:
+                    #     break
         similarity_values = {}
         for image_path in tqdm.tqdm(images_paths):
             sim = cosine_similarity(query_features,image_path)
@@ -51,7 +55,7 @@ def main():
     model.fc = nn.Sequential()
     gal_dir =  args.gallery_path
     query_path = args.query_path
-    out = topk_similar_image(query_path,gal_dir,3)
+    out = topk_similar_image(query_path,gal_dir,args.k)
     print(out)
 
 if __name__ == "__main__":
