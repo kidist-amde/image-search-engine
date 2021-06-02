@@ -1,4 +1,5 @@
 import torchvision.models as models
+import IPython
 import torch
 from torch import nn
 from torchvision  import transforms
@@ -24,6 +25,7 @@ def main():
         except:
             return 0
         gal_features = model(gal_im).detach()
+        # IPython.embed();exit(1)
         return cos(query_features,gal_features)
     def topk_similar_image(query_path,gal_dir,k):  
         query_im = Image.open(query_path)
@@ -31,13 +33,9 @@ def main():
         query_features = model(query_im)
         images_paths = []
         for folder in os.listdir(gal_dir):
-            # i = 0
             for file in os.listdir(os.path.join(gal_dir,folder)):
                 if file.endswith(".jpg"):
                     images_paths.append(os.path.join(gal_dir,folder,file))
-                    # i +=1
-                    # if i >= 2:
-                    #     break
         similarity_values = {}
         for image_path in tqdm.tqdm(images_paths):
             sim = cosine_similarity(query_features,image_path)
@@ -53,6 +51,7 @@ def main():
     model = models.resnet50(pretrained = True, progress = True) 
     # remove the output layer /Imagnet data set class 
     model.fc = nn.Sequential()
+    model.eval()
     gal_dir =  args.gallery_path
     query_path = args.query_path
     out = topk_similar_image(query_path,gal_dir,args.k)
