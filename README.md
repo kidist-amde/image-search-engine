@@ -10,6 +10,7 @@ and install the dependancies.
 ```bash
 pip install -r requirment.txt
 ```
+
 ##### Running feature extraction script.
 Assume you have dataset folder in your current directory and in side this directory you have validation directory which hold query and gallery folder inside it. You can use the following command to excute the feature extraction script and to retrieve the top 10 similar images . 
 ```bash
@@ -19,3 +20,7 @@ for more information you can use the following command
 ```bash 
 python feature_extraction.py --help
 ```
+##### cofigration 
+
+Replace the file paths which specfied in the [config](config.py) script.
+
