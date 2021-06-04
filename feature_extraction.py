@@ -8,7 +8,7 @@ import os
 import argparse
 import tqdm # use to create progress bar
 # create Resnet pretrained model
-resnet50 = models.resnet50(pretrained = True)
+# resnet50 = models.resnet50(pretrained = True)
 # define cosine similarity 
 cos = nn.CosineSimilarity(dim=1, eps=1e-6)
 
@@ -48,7 +48,10 @@ def main():
     transform = transforms.Compose([transforms.Resize(255),
                                 transforms.CenterCrop(224),
                                 transforms.ToTensor(),normalize])
-    model = models.resnet50(pretrained = True, progress = True) 
+    # model = models.resnet50(pretrained = True, progress = True) 
+    
+    # loading my model
+    model = torch.load("new_best_model.pth",map_location = torch.device("cpu"))
     # remove the output layer /Imagnet data set class 
     model.fc = nn.Sequential()
     model.eval()
