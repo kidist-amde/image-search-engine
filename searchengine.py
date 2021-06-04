@@ -47,7 +47,11 @@ transform =transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-model = models.resnet50(pretrained = True, progress = True) 
+
+# loading my model
+# model = torch.load("new_best_model.pth",map_location = torch.device("cpu"))
+model = torch.load("new_best_model_mtk.pth",map_location = torch.device("cpu"))
+
 # remove the output layer /Imagnet data set class 
 model.fc = nn.Sequential()
 model.eval()
@@ -63,15 +67,27 @@ def submit(results, url):
 
 mydata = dict()
 mydata['groupname'] = "TravelNet"
-
-res = dict()
-gallery_dir = os.path.join(data_path,"gallery")
-for file in os.listdir(os.path.join(data_path,"query")):
-    query_path = os.path.join(data_path,"query",file)
-    out = topk_similar_image(query_path,gallery_dir,10)
-    res[file ] = out
+load = False
+if not load:
+        
+    res = dict()
+    gallery_dir = os.path.join(data_path,"gallery")
+    for file in os.listdir(os.path.join(data_path,"query")):
+        
+        query_path = os.path.join(data_path,"query",file)
+        out = topk_similar_image(query_path,gallery_dir,10)
+        res[file ] = out
+        
+        
+    mydata["images"] = res
+else:
     
-# res['<query image name>'] = ['<gallery image rank 1>', '<gallery image rank 2>', ..., '<gallery image rank 10>']
-mydata["images"] = res
-# print(mydata)
+    # print(mydata)
+    with open("results.json") as f:
+        mydata = json.load(f)
+ 
+with open("results3.json","w") as f:
+    json.dump(mydata,f)
+        
 submit(mydata, url)
+

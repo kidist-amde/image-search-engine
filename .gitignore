@@ -54,6 +54,12 @@ FinalPro
 all_data
 train_val
 best_model*
+TravelNet*
+*best_*
+*new*
+*.json
+test/
+backup.py
 
 # Translations
 *.mo

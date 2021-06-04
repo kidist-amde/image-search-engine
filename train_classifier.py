@@ -46,22 +46,29 @@ class  SearchEngineDataset(Dataset):
         return len(self.file_paths)
 
     def __getitem__(self, idx):
-        if idx in self.loaded_data:
-            return self.loaded_data[idx]
+        # if idx in self.loaded_data:
+        #     return self.loaded_data[idx]
         file_path = self.file_paths[idx]
         label = self.labels[idx]
-        image  = Image.open(file_path).convert("RGB")
+        image  = Image.open(file_path)
+        if not image.mode=="RGB":
+          image = image.convert("RGB")
+          filename, _ = os.path.splitext(file_path)
+          new_file_path = filename+".jpg"
+          image.save(new_file_path)
+          self.file_paths[idx] = new_file_path
+
         label = self.label_mapping[label]
         if self.transform is not None:
             image = self.transform(image)
-        self.loaded_data[idx] = image,label
+        # self.loaded_data[idx] = image,label
         return image,label
 def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
         for param in model.parameters():
             param.requires_grad = False
 def train_model(model,dataloader,optimizer,criterion):
-    model.train()
+    model.layer4.train()
     running_loss = 0.0
     running_corrects = 0
     # Iterate over data.
@@ -147,14 +154,10 @@ def main():
     # train_path = "all_data/training"
     # val_path = "all_data/validation/query"
     input_size = 224
-    num_epochs = 2
+    num_epochs = 200
     batch_size = 32
     data_transforms = {
     'train': transforms.Compose([
-        transforms.ToTensor(),
-        # chnage the gray scale to RGB if the image  is gray scale image
-        transforms.Lambda(lambda x: torch.cat([x, x, x]) if x.size(0) == 1 else x),
-        transforms.ToPILImage(),
         transforms.RandomResizedCrop(input_size),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=20),
@@ -165,9 +168,6 @@ def main():
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'val': transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: torch.cat([x, x, x]) if x.size(0) == 1 else x),
-        transforms.ToPILImage(),
         transforms.Resize(input_size),
         transforms.CenterCrop(input_size),
         transforms.ToTensor(),
@@ -191,14 +191,16 @@ def main():
               batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
         
     model = models.resnet18(pretrained="imagenet")
-    set_parameter_requires_grad(model, feature_extracting = False)
+    set_parameter_requires_grad(model, feature_extracting = True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, len(train_dataset.label_mapping))
     model = model.to(device)
+    for param in model.layer4.parameters():
+        param.requires_grad = True
 
     # print(model)
     # parameters are being optimized
-    optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
+    optimizer = optim.SGD(model.layer4.parameters(), lr=0.001, momentum=0.9)
     # Setup the loss fun
     criterion = nn.CrossEntropyLoss()
     # Train and evaluate
