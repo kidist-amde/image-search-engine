@@ -1,5 +1,7 @@
-submission_data_path = "FinalPro"
-url = "http://ec2-18-191-24-254.us-east-2.compute.amazonaws.com/results/"
+submission_data_path = "test"
+url = "http://ec2-18-191-24-254.us-east-2.compute.amazonaws.com/competition/"
+# url = "http://ec2-18-191-24-254.us-east-2.compute.amazonaws.com/test/"
+
 download_data_path = "downloads"
 split_data_path = "train_val"
 train_path = "all_data/training"

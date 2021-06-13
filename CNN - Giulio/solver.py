@@ -1,6 +1,7 @@
 import tensorflow as tf
 import random
 import numpy as np
+import wandb
 
 
 class ImageClassifier():
@@ -16,7 +17,7 @@ class ImageClassifier():
         # logits = output of neural network before the final activation function, thus x in call()
         lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
             self.initial_learning_rate,
-            decay_steps=250,
+            decay_steps=500,
             decay_rate=0.96,
             staircase=True)
         optimizer = tf.keras.optimizers.Adam(
@@ -65,6 +66,13 @@ class ImageClassifier():
                         e + 1, global_step,
                         batch_loss.numpy(),
                         batch_accuracy.numpy()))
+                    # to log informations to wandb create a dictionary and log them
+                    lr = optimizer._decayed_lr(tf.float32).numpy()
+                    wandb.log(
+                        {'train/batch_loss': batch_loss,
+                         'train/batch_accuracy': batch_accuracy,
+                         'train/learning_rate': lr
+                         })
                 if global_step == 1:
                     print('number of model parameters {}'.format(model.count_params()))
 
@@ -83,12 +91,18 @@ class ImageClassifier():
             test_accuracy = tf.reduce_mean(tf.cast(eq, tf.float32)) * 100
             if test_accuracy > best_accuracy:
                 best_accuracy = test_accuracy
-                model.save('./mymodel2')
+                model.save('./mymodel4')
             print('End of Epoch {0}/{1:03} -> loss: {2:0.05}, test accuracy: {3:0.03} - best accuracy: {4:0.03}'.format(
                 e + 1, self.epochs,
                 loss.numpy(),
                 test_accuracy.numpy(),
                 best_accuracy))
+            # to log informations to wandb create a dictionary and log them
+            wandb.log(
+                {'test/loss': loss,
+                 'test/accuracy': test_accuracy,
+                 'test/best_accuracy': best_accuracy,
+                 'epoch': e + 1})
 
 
 
